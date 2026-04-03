@@ -1,1505 +1,369 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF工具箱 - 在线处理PDF</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-            padding: 40px 0;
-        }
-        
-        header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-        
-        header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            margin-bottom: 40px;
-        }
-        
-        .tool-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        
-        .tool-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        }
-        
-        .tool-card.active {
-            background: #f0f4ff;
-            border: 2px solid #667eea;
-        }
-        
-        .tool-icon {
-            width: 50px;
-            height: 50px;
-            margin: 0 auto 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-        
-        .tool-card h3 {
-            color: #333;
-            font-size: 0.95rem;
-            margin-bottom: 5px;
-        }
-        
-        .tool-card p {
-            color: #888;
-            font-size: 0.8rem;
-        }
-        
-        .tool-panel {
-            display: none;
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        .tool-panel.show {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .tool-panel h2 {
-            color: #333;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .upload-area {
-            border: 2px dashed #ddd;
-            border-radius: 12px;
-            padding: 40px;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
-        
-        .upload-area:hover, .upload-area.dragover {
-            border-color: #667eea;
-            background: #f8f9ff;
-        }
-        
-        .upload-area input {
-            display: none;
-        }
-        
-        .upload-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-        
-        .upload-area p {
-            color: #666;
-        }
-        
-        .upload-area .hint {
-            font-size: 0.85rem;
-            color: #999;
-            margin-top: 10px;
-        }
-        
-        .file-list {
-            margin: 20px 0;
-        }
-        
-        .file-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-        
-        .file-item .file-name {
-            flex: 1;
-            color: #333;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        
-        .file-item .file-size {
-            color: #999;
-            font-size: 0.85rem;
-            margin-left: 15px;
-        }
-        
-        .file-item .remove-btn {
-            background: #ff4757;
-            color: white;
-            border: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-left: 10px;
-            font-size: 16px;
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 5px;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .btn-secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
-        
-        .btn-secondary:hover {
-            background: #d0d0d0;
-            box-shadow: none;
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-        }
-        
-        .btn-warning {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-        
-        .btn-info {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 4px;
-            margin: 20px 0;
-            overflow: hidden;
-            display: none;
-        }
-        
-        .progress-bar.show {
-            display: block;
-        }
-        
-        .progress-bar .progress {
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-            width: 0%;
-        }
-        
-        .status {
-            text-align: center;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            display: none;
-        }
-        
-        .status.show {
-            display: block;
-        }
-        
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .status.info {
-            background: #cce5ff;
-            color: #004085;
-        }
-        
-        .result-area {
-            text-align: center;
-            padding: 30px;
-            display: none;
-        }
-        
-        .result-area.show {
-            display: block;
-        }
-        
-        .result-area a {
-            display: inline-block;
-            margin: 10px;
-            color: #667eea;
-            text-decoration: none;
-            padding: 10px 20px;
-            background: #f0f4ff;
-            border-radius: 8px;
-        }
-        
-        .form-group {
-            margin: 15px 0;
-        }
-        
-        .form-group label {
-            display: block;
-            color: #666;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        
-        .form-group input[type="text"],
-        .form-group input[type="password"],
-        .form-group input[type="number"],
-        .form-group select {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-        
-        .form-group .hint {
-            color: #999;
-            font-size: 0.85rem;
-            margin-top: 5px;
-        }
-        
-        .form-row {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .form-row .form-group {
-            flex: 1;
-            min-width: 150px;
-        }
-        
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 10px 0;
-        }
-        
-        .checkbox-group input {
-            width: 18px;
-            height: 18px;
-        }
-        
-        .footer {
-            text-align: center;
-            color: white;
-            opacity: 0.8;
-            margin-top: 40px;
-            padding: 20px;
-        }
-        
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .tools-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .tool-panel {
-                padding: 20px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线工具箱</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:20px}
+.container{max-width:1200px;margin:0 auto}
+header{text-align:center;color:white;margin-bottom:30px;padding:30px 0}
+header h1{font-size:2rem;margin-bottom:8px}
+header p{font-size:1rem;opacity:0.9}
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:30px}
+.tool-card{background:white;border-radius:10px;padding:12px;cursor:pointer;transition:all 0.3s;box-shadow:0 3px 10px rgba(0,0,0,0.1);text-align:center}
+.tool-card:hover{transform:translateY(-2px)}
+.tool-card.active{background:#f0f4ff;border:2px solid #667eea}
+.tool-icon{width:40px;height:40px;margin:0 auto 6px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.tool-card h3{color:#333;font-size:0.85rem;margin-bottom:2px}
+.tool-card p{color:#888;font-size:0.7rem}
+.tool-panel{display:none;background:white;border-radius:14px;padding:20px;box-shadow:0 3px 10px rgba(0,0,0,0.1)}
+.tool-panel.show{display:block}
+.tool-panel h2{color:#333;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #eee;font-size:1.1rem}
+.upload-area{border:2px dashed #ddd;border-radius:10px;padding:25px;text-align:center;cursor:pointer;margin-bottom:12px}
+.upload-area:hover,.upload-area.dragover{border-color:#667eea;background:#f8f9ff}
+.upload-area input{display:none}
+.upload-icon{font-size:36px;margin-bottom:8px}
+.upload-area p{color:#666;font-size:0.9rem}
+.upload-area .hint{font-size:0.75rem;color:#999;margin-top:6px}
+.file-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#f8f9fa;border-radius:6px;margin-bottom:6px}
+.file-item .file-name{flex:1;color:#333;font-size:0.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-item .file-size{color:#999;font-size:0.75rem;margin-left:8px}
+.file-item .remove-btn{background:#ff4757;color:white;border:none;width:22px;height:22px;border-radius:4px;cursor:pointer;font-size:12px}
+.btn{background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;padding:8px 20px;border-radius:6px;font-size:0.9rem;cursor:pointer;margin:2px}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.btn-secondary{background:#e0e0e0;color:#333}
+.progress-bar{width:100%;height:5px;background:#e0e0e0;border-radius:3px;margin:12px 0;overflow:hidden;display:none}
+.progress-bar.show{display:block}
+.progress-bar .progress{height:100%;background:linear-gradient(135deg,#667eea,#764ba2);width:0%}
+.status{text-align:center;padding:10px;border-radius:6px;margin:12px 0;display:none}
+.status.show{display:block}
+.status.success{background:#d4edda;color:#155724}
+.status.error{background:#f8d7da;color:#721c24}
+.status.info{background:#cce5ff;color:#004085}
+.result-area{text-align:center;padding:15px;display:none}
+.result-area.show{display:block}
+.result-area a{display:inline-block;margin:6px;padding:8px 16px;background:#f0f4ff;border-radius:6px;color:#667eea;text-decoration:none}
+.form-group{margin:10px 0}
+.form-group label{display:block;color:#666;margin-bottom:5px;font-weight:500;font-size:0.9rem}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:5px;font-size:0.9rem}
+.form-group .hint{color:#999;font-size:0.75rem;margin-top:3px}
+.form-row{display:flex;gap:10px;flex-wrap:wrap}
+.form-row .form-group{flex:1;min-width:100px}
+textarea{width:100%;min-height:120px;margin:8px 0;padding:10px;border:1px solid #ddd;border-radius:6px;font-family:monospace;resize:vertical}
+.footer{text-align:center;color:white;opacity:0.8;margin-top:30px;padding:15px}
+@media(max-width:768px){header h1{font-size:1.5rem}.tools-grid{grid-template-columns:repeat(3,1fr)}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>📄 PDF工具箱</h1>
-            <p>在线处理PDF文件，无需上传，全程本地处理，保护隐私</p>
-        </header>
-        
-        <div class="tools-grid">
-            <div class="tool-card" data-tool="merge">
-                <div class="tool-icon">📑</div>
-                <h3>PDF合并</h3>
-                <p>多个PDF合并</p>
-            </div>
-            <div class="tool-card" data-tool="split">
-                <div class="tool-icon">✂️</div>
-                <h3>PDF拆分</h3>
-                <p>按页拆分</p>
-            </div>
-            <div class="tool-card" data-tool="compress">
-                <div class="tool-icon">📦</div>
-                <h3>PDF压缩</h3>
-                <p>压缩文件大小</p>
-            </div>
-            <div class="tool-card" data-tool="encrypt">
-                <div class="tool-icon">🔐</div>
-                <h3>PDF加密</h3>
-                <p>添加密码保护</p>
-            </div>
-            <div class="tool-card" data-tool="decrypt">
-                <div class="tool-icon">🔓</div>
-                <h3>PDF解密</h3>
-                <p>移除密码</p>
-            </div>
-            <div class="tool-card" data-tool="rotate">
-                <div class="tool-icon">🔄</div>
-                <h3>PDF旋转</h3>
-                <p>旋转页面方向</p>
-            </div>
-            <div class="tool-card" data-tool="watermark">
-                <div class="tool-icon">💧</div>
-                <h3>添加水印</h3>
-                <p>文字水印</p>
-            </div>
-            <div class="tool-card" data-tool="toImage">
-                <div class="tool-icon">🖼️</div>
-                <h3>PDF转图片</h3>
-                <p>导出PNG/JPEG</p>
-            </div>
-            <div class="tool-card" data-tool="extractText">
-                <div class="tool-icon">📝</div>
-                <h3>提取文字</h3>
-                <p>PDF转文本</p>
-            </div>
-            <div class="tool-card" data-tool="convert">
-                <div class="tool-icon">🔃</div>
-                <h3>格式转换</h3>
-                <p>Word/Excel转PDF</p>
-            </div>
-        </div>
-        
-        <!-- PDF合并 -->
-        <div class="tool-panel" id="panel-merge">
-            <h2>📑 PDF合并</h2>
-            <div class="upload-area" id="upload-merge">
-                <input type="file" id="input-merge" multiple accept=".pdf">
-                <div class="upload-icon">📁</div>
-                <p>点击选择或拖拽PDF文件到这里</p>
-                <p class="hint">支持一次选择多个文件</p>
-            </div>
-            <div class="file-list" id="file-list-merge"></div>
-            <div class="progress-bar" id="progress-merge">
-                <div class="progress"></div>
-            </div>
-            <div class="status" id="status-merge"></div>
-            <div class="result-area" id="result-merge">
-                <p>✅ 合并完成！</p>
-                <a id="download-merge" download="merged.pdf">下载合并后的PDF</a>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn" id="btn-merge" disabled>开始合并</button>
-                <button class="btn btn-secondary" onclick="clearFiles('merge')">清空</button>
-            </div>
-        </div>
-        
-        <!-- PDF拆分 -->
-        <div class="tool-panel" id="panel-split">
-            <h2>✂️ PDF拆分</h2>
-            <div class="upload-area" id="upload-split">
-                <input type="file" id="input-split" accept=".pdf">
-                <div class="upload-icon">📄</div>
-                <p>点击选择或拖拽PDF文件到这里</p>
-                <p class="hint">选择一个PDF文件</p>
-            </div>
-            <div class="file-list" id="file-list-split"></div>
-            <div class="form-group">
-                <label>拆分页码：</label>
-                <input type="text" id="split-pages" placeholder="如: 1,3-5,8">
-                <p class="hint">输入页码，用逗号分隔，如：1,3-5,8。留空则每页单独拆分为一个文件</p>
-            </div>
-            <div class="progress-bar" id="progress-split">
-                <div class="progress"></div>
-            </div>
-            <div class="status" id="status-split"></div>
-            <div class="result-area" id="result-split">
-                <p>✅ 拆分完成！</p>
-                <div id="download-split-links"></div>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn" id="btn-split" disabled>开始拆分</button>
-                <button class="btn btn-secondary" onclick="clearFiles('split')">清空</button>
-            </div>
-        </div>
-        
-        <!-- PDF压缩 -->
-        <div class="tool-panel" id="panel-compress">
-            <h2>📦 PDF压缩</h2>
-            <div class="upload-area" id="upload-compress">
-                <input type="file" id="input-compress" accept=".pdf">
-                <div class="upload-icon">📄</div>
-                <p>点击选择或拖拽PDF文件到这里</p>
-                <p class="hint">选择一个PDF文件</p>
-            </div>
-            <div class="file-list" id="file-list-compress"></div>
-            <div class="form-group">
-                <label>压缩质量：</label>
-                <select id="compress-quality">
-                    <option value="low">低（压缩率高，文件更小）</option>
-                    <option value="medium" selected>中（平衡）</option>
-                    <option value="high">高（质量好，压缩率低）</option>
-                </select>
-            </div>
-            <div class="progress-bar" id="progress-compress">
-                <div class="progress"></div>
-            </div>
-            <div class="status" id="status-compress"></div>
-            <div class="result-area" id="result-compress">
-                <p>✅ 压缩完成！</p>
-                <div id="compress-stats"></div>
-                <a id="download-compress" download="compressed.pdf">下载压缩后的PDF</a>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn" id="btn-compress" disabled>开始压缩</button>
-                <button class="btn btn-secondary" onclick="clearFiles('compress')">清空</button>
-            </div>
-        </div>
-        
-        <!-- PDF加密 -->
-        <div class="tool-panel" id="panel-encrypt">
-            <h2>🔐 PDF加密</h2>
-            <div class="upload-area" id="upload-encrypt">
-                <input type="file" id="input-encrypt" accept=".pdf">
-                <div class="upload-icon">📄</div>
-                <p>点击选择或拖拽PDF文件到这里</p>
-            </div>
-            <div class="file-list" id="file-list-encrypt"></div>
-            <div class="form-group">
-                <label>设置密码：</label>
-                <input type="password" id="encrypt-password" placeholder="输入密码">
-            </div>
-            <div class="form-group">
-                <label>确认密码：</label>
-                <input type="password" id="encrypt-password2" placeholder="再次输入密码">
-            </div>
-            <div class="progress-bar" id="progress-encrypt">
-                <div class="progress"></div>
-            </div>
-            <div class="status" id="status-encrypt"></div>
-            <div class="result-area" id="result-encrypt">
-                <p>✅ 加密完成！</p>
-                <a id="download-encrypt" download="encrypted.pdf">下载加密后的PDF</a>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn" id="btn-encrypt" disabled>开始加密</button>
-                <button class="btn btn-secondary" onclick="clearFiles('encrypt')">清空</button>
-            </div>
-        </div>
-        
-        <!-- PDF解密 -->
-        <div class="tool-panel" id="panel-decrypt">
-            <h2>🔓 PDF解密</h2>
-            <div class="upload-area" id="upload-decrypt">
-                <input type="file" id="input-decrypt" accept=".pdf">
-                <div class="upload-icon">📄</div>
-                <p>点击选择或拖拽加密的PDF文件到这里</p>
-            </div>
-            <div class="file-list" id="file-list-decrypt"></div>
-            <div class="form-group">
-                <label>输入密码：</label>
-                <input type="password" id="decrypt-password" placeholder="输入PDF密码">
-            </div>
-            <div class="progress-bar" id="progress-decrypt">
-                <div class="progress"></div>
-            </div>
-            <div class="status" id="status-decrypt"></div>
-            <div class="result-area" id="result-decrypt">
-                <p>✅ 解密完成！</p>
-                <a id="download-decrypt" download="decrypted.pdf">下载解密后的PDF</a>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn" id="btn-decrypt" disabled>开始解密</button>
-                <button class="btn btn-secondary" onclick="clearFiles('decrypt')">清空</button>
-            </div>
-        </div>
-        
-        <!-- PDF旋转 -->
-        <div class="tool-panel" id="panel-rotate">
-            <h2>🔄 PDF旋转</h2>
-            <div class="upload-area" id="upload-rotate">
-                <input type="file" id="input-rotate" accept=".pdf">
-                <div class="upload-icon">📄</div>
-                <p>点击选择或拖拽PDF文件到这里</p>
-            </div>
-            <div class="file-list" id="file-list-rotate"></div>
-            <div class="form-group">
-                <label>旋转角度：</label>
-                <select id="rotate-angle">
-                    <option value="90">顺时针90°</option>
-                    <option value="180">旋转180°</option>
-                    <option value="270">逆时针90°</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>旋转页码：</label>
-                <input type="text" id="rotate-pages" placeholder="如: 1,3-5,8">
-                <p class="hint">留空则旋转所有页面</p>
-            </div>
-            <div class="progress-bar" id="progress-rotate">
-                <div class="progress"></div>
-            </div>
-            <div class="status" id="status-rotate"></div>
-            <div class="result-area" id="result-rotate">
-                <p>✅ 旋转完成！</p>
-                <a id="download-rotate" download="rotated.pdf">下载旋转后的PDF</a>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn" id="btn-rotate" disabled>开始旋转</button>
-                <button class="btn btn-secondary" onclick="clearFiles('rotate')">清空</button>
-            </div>
-        </div>
-        
-        <!-- 添加水印 -->
-        <div class="tool-panel" id="panel-watermark">
-            <h2>💧 添加水印</h2>
-            <div class="upload-area" id="upload-watermark">
-                <input type="file" id="input-watermark" accept=".pdf">
-                <div class="upload-icon">📄</div>
-                <p>点击选择或拖拽PDF文件到这里</p>
-            </div>
-            <div class="file-list" id="file-list-watermark"></div>
-            <div class="form-group">
-                <label>水印文字：</label>
-                <input type="text" id="watermark-text" placeholder="如: 机密文件">
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>字体大小：</label>
-                    <input type="number" id="watermark-size" value="48" min="12" max="200">
-                </div>
-                <div class="form-group">
-                    <label>透明度：</label>
-                    <input type="number" id="watermark-opacity" value="30" min="10" max="100">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>旋转角度：</label>
-                <input type="number" id="watermark-angle" value="-45" min="-180" max="180">
-            </div>
-            <div class="form-group">
-                <label>水印页码：</label>
-                <input type="text" id="watermark-pages" placeholder="如: 1,3-5,8">
-                <p class="hint">留空则添加水印到所有页面</p>
-            </div>
-            <div class="progress-bar" id="progress-watermark">
-                <div class="progress"></div>
-            </div>
-            <div class="status" id="status-watermark"></div>
-            <div class="result-area" id="result-watermark">
-                <p>✅ 水印添加完成！</p>
-                <a id="download-watermark" download="watermarked.pdf">下载带水印的PDF</a>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn" id="btn-watermark" disabled>添加水印</button>
-                <button class="btn btn-secondary" onclick="clearFiles('watermark')">清空</button>
-            </div>
-        </div>
-        
-        <!-- PDF转图片 -->
-        <div class="tool-panel" id="panel-toImage">
-            <h2>🖼️ PDF转图片</h2>
-            <div class="upload-area" id="upload-toImage">
-                <input type="file" id="input-toImage" accept=".pdf">
-                <div class="upload-icon">📄</div>
-                <p>点击选择或拖拽PDF文件到这里</p>
-            </div>
-            <div class="file-list" id="file-list-toImage"></div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>导出格式：</label>
-                    <select id="image-format">
-                        <option value="png">PNG</option>
-                        <option value="jpeg">JPEG</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>图片质量：</label>
-                    <select id="image-quality">
-                        <option value="1">1x (标准)</option>
-                        <option value="2" selected>2x (高清)</option>
-                        <option value="3">3x (超清)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="progress-bar" id="progress-toImage">
-                <div class="progress"></div>
-            </div>
-            <div class="status" id="status-toImage"></div>
-            <div class="result-area" id="result-toImage">
-                <p>✅ 转换完成！</p>
-                <div id="image-links"></div>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn" id="btn-toImage" disabled>开始转换</button>
-                <button class="btn btn-secondary" onclick="clearFiles('toImage')">清空</button>
-            </div>
-        </div>
-        
-        <!-- 提取文字 -->
-        <div class="tool-panel" id="panel-extractText">
-            <h2>📝 提取文字</h2>
-            <div class="upload-area" id="upload-extractText">
-                <input type="file" id="input-extractText" accept=".pdf">
-                <div class="upload-icon">📄</div>
-                <p>点击选择或拖拽PDF文件到这里</p>
-            </div>
-            <div class="file-list" id="file-list-extractText"></div>
-            <div class="progress-bar" id="progress-extractText">
-                <div class="progress"></div>
-            </div>
-            <div class="status" id="status-extractText"></div>
-            <div class="result-area" id="result-extractText">
-                <p>✅ 提取完成！</p>
-                <textarea id="extracted-text" style="width: 100%; min-height: 200px; margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; font-family: monospace;" placeholder="提取的文本将显示在这里..."></textarea>
-                <div>
-                    <button class="btn" onclick="copyText()">复制文本</button>
-                    <button class="btn btn-secondary" onclick="downloadText()">下载TXT</button>
-                </div>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn" id="btn-extractText" disabled>提取文字</button>
-                <button class="btn btn-secondary" onclick="clearFiles('extractText')">清空</button>
-            </div>
-        </div>
-        
-        <!-- 格式转换 -->
-        <div class="tool-panel" id="panel-convert">
-            <h2>🔃 格式转换</h2>
-            <div class="upload-area" id="upload-convert">
-                <input type="file" id="input-convert" accept=".doc,.docx,.xls,.xlsx">
-                <div class="upload-icon">📄</div>
-                <p>点击选择Word/Excel文件</p>
-                <p class="hint">支持 .doc, .docx, .xls, .xlsx</p>
-            </div>
-            <div class="file-list" id="file-list-convert"></div>
-            <div class="status" id="status-convert" style="background: #fff3cd; color: #856404;">
-                ⚠️ 提示：由于浏览器安全限制，Word/Excel转PDF需要上传到服务器处理。请稍后刷新页面重试，或使用专业的本地软件。
-            </div>
-            <div class="result-area" id="result-convert">
-                <p>✅ 转换完成！</p>
-                <a id="download-convert" download="converted.pdf">下载转换后的PDF</a>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn" id="btn-convert" disabled onclick="convertFile()">转换为PDF</button>
-                <button class="btn btn-secondary" onclick="clearFiles('convert')">清空</button>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <p>🔒 所有处理在浏览器本地完成，您的文件不会被上传到任何服务器</p>
-        </div>
-    </div>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script>
-        // 设置PDF.js worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        
-        // 存储上传的文件
-        const filesStore = {
-            merge: [],
-            split: [],
-            compress: [],
-            encrypt: [],
-            decrypt: [],
-            rotate: [],
-            watermark: [],
-            toImage: [],
-            extractText: [],
-            convert: []
+<div class="container">
+<header><h1>🛠️ 在线工具箱</h1><p>PDF处理 / 图片工具 / 语音合成</p></header>
+<div class="tools-grid">
+<div class="tool-card" data-tool="merge"><div class="tool-icon">📑</div><h3>PDF合并</h3><p>多文件合并</p></div>
+<div class="tool-card" data-tool="split"><div class="tool-icon">✂️</div><h3>PDF拆分</h3><p>按页拆分</p></div>
+<div class="tool-card" data-tool="watermark"><div class="tool-icon">💧</div><h3>PDF水印</h3><p>添加水印</p></div>
+<div class="tool-card" data-tool="pdf2img"><div class="tool-icon">🖼️</div><h3>PDF转图片</h3><p>导出图片</p></div>
+<div class="tool-card" data-tool="extract"><div class="tool-icon">📄</div><h3>PDF文字</h3><p>提取文本</p></div>
+<div class="tool-card" data-tool="qrcode"><div class="tool-icon">📱</div><h3>二维码</h3><p>生成扫码</p></div>
+<div class="tool-card" data-tool="imgCompress"><div class="tool-icon">🗜️</div><h3>图片压缩</h3><p>减小体积</p></div>
+<div class="tool-card" data-tool="tts"><div class="tool-icon">🔊</div><h3>文字转语音</h3><p>语音合成</p></div>
+</div>
+
+<div class="tool-panel" id="panel-merge"><h2>📑 PDF合并</h2>
+<div class="upload-area" id="upload-merge"><input type="file" id="input-merge" multiple accept=".pdf"><div class="upload-icon">📁</div><p>点击或拖拽添加PDF</p><p class="hint">支持多个文件</p></div>
+<div class="file-list" id="file-list-merge"></div>
+<div class="progress-bar" id="progress-merge"><div class="progress"></div></div>
+<div class="status" id="status-merge"></div>
+<div class="result-area" id="result-merge"><p>✅ 合并完成！</p><a id="download-merge" download="merged.pdf">下载PDF</a></div>
+<div style="text-align:center;margin-top:12px"><button class="btn" id="btn-merge" disabled>开始合并</button><button class="btn btn-secondary" onclick="clearFiles('merge')">清空</button></div>
+</div>
+
+<div class="tool-panel" id="panel-split"><h2>✂️ PDF拆分</h2>
+<div class="upload-area" id="upload-split"><input type="file" id="input-split" accept=".pdf"><div class="upload-icon">📄</div><p>点击或拖拽添加PDF</p></div>
+<div class="file-list" id="file-list-split"></div>
+<div class="form-group"><label>拆分页码：</label><input type="text" id="split-pages" placeholder="如: 1,3-5,8"><p class="hint">留空则每页拆分为ZIP</p></div>
+<div class="progress-bar" id="progress-split"><div class="progress"></div></div>
+<div class="status" id="status-split"></div>
+<div class="result-area" id="result-split"><p>✅ 拆分完成！</p><div id="download-split-links"></div></div>
+<div style="text-align:center;margin-top:12px"><button class="btn" id="btn-split" disabled>开始拆分</button><button class="btn btn-secondary" onclick="clearFiles('split')">清空</button></div>
+</div>
+
+<div class="tool-panel" id="panel-watermark"><h2>💧 PDF水印</h2>
+<div class="upload-area" id="upload-watermark"><input type="file" id="input-watermark" accept=".pdf"><div class="upload-icon">📄</div><p>点击或拖拽添加PDF</p></div>
+<div class="file-list" id="file-list-watermark"></div>
+<div class="form-group"><label>水印文字：</label><input type="text" id="watermark-text" placeholder="如: 机密文件"></div>
+<div class="form-row"><div class="form-group"><label>字体大小：</label><input type="number" id="watermark-size" value="48" min="12" max="200"></div><div class="form-group"><label>透明度：</label><input type="number" id="watermark-opacity" value="30" min="10" max="100"></div></div>
+<div class="progress-bar" id="progress-watermark"><div class="progress"></div></div>
+<div class="status" id="status-watermark"></div>
+<div class="result-area" id="result-watermark"><p>✅ 水印添加完成！</p><a id="download-watermark" download="watermarked.pdf">下载PDF</a></div>
+<div style="text-align:center;margin-top:12px"><button class="btn" id="btn-watermark" disabled>添加水印</button><button class="btn btn-secondary" onclick="clearFiles('watermark')">清空</button></div>
+</div>
+
+<div class="tool-panel" id="panel-pdf2img"><h2>🖼️ PDF转图片</h2>
+<div class="upload-area" id="upload-pdf2img"><input type="file" id="input-pdf2img" accept=".pdf"><div class="upload-icon">📄</div><p>点击或拖拽添加PDF</p></div>
+<div class="file-list" id="file-list-pdf2img"></div>
+<div class="form-row"><div class="form-group"><label>格式：</label><select id="img-format"><option value="png">PNG</option><option value="jpeg">JPEG</option></select></div><div class="form-group"><label>清晰度：</label><select id="img-scale"><option value="1">1x</option><option value="2" selected>2x高清</option><option value="3">3x超清</option></select></div></div>
+<div class="progress-bar" id="progress-pdf2img"><div class="progress"></div></div>
+<div class="status" id="status-pdf2img"></div>
+<div class="result-area" id="result-pdf2img"><p>✅ 转换完成！</p><div id="img-links"></div></div>
+<div style="text-align:center;margin-top:12px"><button class="btn" id="btn-pdf2img" disabled>开始转换</button><button class="btn btn-secondary" onclick="clearFiles('pdf2img')">清空</button></div>
+</div>
+
+<div class="tool-panel" id="panel-extract"><h2>📄 PDF提取文字</h2>
+<div class="upload-area" id="upload-extract"><input type="file" id="input-extract" accept=".pdf"><div class="upload-icon">📄</div><p>点击或拖拽添加PDF</p></div>
+<div class="file-list" id="file-list-extract"></div>
+<div class="progress-bar" id="progress-extract"><div class="progress"></div></div>
+<div class="status" id="status-extract"></div>
+<div class="result-area" id="result-extract"><p>✅ 提取完成！</p><textarea id="extracted-text" placeholder="提取的文字..."></textarea><div><button class="btn" onclick="copyText()">复制</button><button class="btn btn-secondary" onclick="downloadTxt()">下载TXT</button></div></div>
+<div style="text-align:center;margin-top:12px"><button class="btn" id="btn-extract" disabled>提取文字</button><button class="btn btn-secondary" onclick="clearFiles('extract')">清空</button></div>
+</div>
+
+<div class="tool-panel" id="panel-qrcode"><h2>📱 二维码生成</h2>
+<div class="form-group"><label>内容：</label><textarea id="qr-content" placeholder="输入链接或文字"></textarea></div>
+<div class="form-row"><div class="form-group"><label>尺寸：</label><input type="number" id="qr-size" value="200" min="100" max="400"></div><div class="form-group"><label>颜色：</label><input type="color" id="qr-color" value="#000000"></div></div>
+<div style="text-align:center;margin:15px 0"><button class="btn" onclick="generateQR()">生成二维码</button><button class="btn btn-secondary" onclick="clearQR()">清空</button></div>
+<div class="status" id="status-qrcode"></div>
+<div class="result-area show" id="result-qrcode"><p>✅ 二维码：</p><div id="qrcode"></div><a id="download-qr" download="qrcode.png">下载PNG</a></div>
+</div>
+
+<div class="tool-panel" id="panel-imgCompress"><h2>🗜️ 图片压缩</h2>
+<div class="upload-area" id="upload-imgCompress"><input type="file" id="input-imgCompress" accept="image/*"><div class="upload-icon">🖼️</div><p>点击或拖拽添加图片</p></div>
+<div class="file-list" id="file-list-imgCompress"></div>
+<div class="form-group"><label>压缩质量：</label><select id="compress-level"><option value="0.3">低（高压缩）</option><option value="0.6" selected>中（平衡）</option><option value="0.9">高（低压缩）</option></select></div>
+<div class="progress-bar" id="progress-imgCompress"><div class="progress"></div></div>
+<div class="status" id="status-imgCompress"></div>
+<div class="result-area" id="result-imgCompress"><p>✅ 压缩完成！</p><img id="compress-img-preview" style="max-width:150px;margin:8px auto;display:block;"><div id="compress-stats"></div><a id="download-imgCompress" download="compressed.png">下载图片</a></div>
+<div style="text-align:center;margin-top:12px"><button class="btn" id="btn-imgCompress" disabled>压缩图片</button><button class="btn btn-secondary" onclick="clearFiles('imgCompress')">清空</button></div>
+</div>
+
+<div class="tool-panel" id="panel-tts"><h2>🔊 文字转语音</h2>
+<div class="form-group"><label>输入文字：</label><textarea id="tts-text" placeholder="输入要转换的文字..."></textarea></div>
+<div class="form-row"><div class="form-group"><label>语速：</label><input type="range" id="tts-rate" min="0.5" max="2" step="0.1" value="1" style="width:100%"><span id="rate-val">1</span></div><div class="form-group"><label>音调：</label><input type="range" id="tts-pitch" min="0.5" max="2" step="0.1" value="1" style="width:100%"><span id="pitch-val">1</span></div></div>
+<div class="form-group"><label>选择声音：</label><select id="tts-voice"></select></div>
+<div style="text-align:center;margin:12px 0"><button class="btn" onclick="speakText()">🔊 播放</button><button class="btn btn-secondary" onclick="stopSpeak()">⏹ 停止</button></div>
+<div class="status" id="status-tts"></div>
+<div class="result-area show" id="result-tts"><audio id="tts-audio" controls style="width:100%;margin:8px 0;display:none"></audio></div>
+</div>
+
+<div class="footer"><p>🔒 所有处理在浏览器本地完成，保护隐私</p></div>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const store={merge:[],split:[],watermark:[],pdf2img:[],extract:[],imgCompress:[]};
+let qrInstance=null;
+
+document.querySelectorAll('.tool-card').forEach(c=>c.addEventListener('click',()=>{
+    document.querySelectorAll('.tool-card').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tool-panel').forEach(x=>x.classList.remove('show'));
+    c.classList.add('active');
+    document.getElementById('panel-'+c.dataset.tool).classList.add('show');
+}));
+
+['merge','split','watermark','pdf2img','extract','imgCompress'].forEach(tool=>{
+    const area=document.getElementById('upload-'+tool),input=document.getElementById('input-'+tool);
+    area.addEventListener('click',()=>input.click());
+    area.addEventListener('dragover',e=>{e.preventDefault();area.classList.add('dragover')});
+    area.addEventListener('dragleave',()=>area.classList.remove('dragover'));
+    area.addEventListener('drop',e=>{e.preventDefault();area.classList.remove('dragover');handleFiles(tool,e.dataTransfer.files)});
+    input.addEventListener('change',e=>handleFiles(tool,e.target.files));
+});
+
+function handleFiles(tool,files){for(let f of files)store[tool].push(f);renderList(tool);document.getElementById('btn-'+tool).disabled=store[tool].length===0;}
+function renderList(tool){const c=document.getElementById('file-list-'+tool);c.innerHTML='';store[tool].forEach((f,i)=>{c.innerHTML+=`<div class="file-item"><span class="file-name">📄 ${f.name}</span><span class="file-size">${formatSize(f.size)}</span><button class="remove-btn" onclick="removeFile('${tool}',${i})">×</button></div>`;});}
+function formatSize(b){return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB';}
+function removeFile(tool,i){store[tool].splice(i,1);renderList(tool);document.getElementById('btn-'+tool).disabled=store[tool].length===0;}
+function clearFiles(tool){store[tool]=[];renderList(tool);document.getElementById('btn-'+tool).disabled=true;document.getElementById('result-'+tool).classList.remove('show');document.getElementById('status-'+tool).classList.remove('show');document.getElementById('progress-'+tool).classList.remove('show');}
+function showStatus(tool,msg,type){const s=document.getElementById('status-'+tool);s.textContent=msg;s.className='status show '+type;}
+function showProgress(tool,p){const pb=document.getElementById('progress-'+tool);pb.classList.add('show');pb.querySelector('.progress').style.width=p+'%';}
+
+document.getElementById('btn-merge').addEventListener('click',async()=>{
+    if(store.merge.length<2){showStatus('merge','请至少选择2个PDF','error');return;}
+    const btn=document.getElementById('btn-merge');btn.disabled=true;
+    showStatus('merge','处理中...','info');showProgress('merge',0);
+    try{
+        const {PDFDocument}=PDFLib,merged=await PDFDocument.create();
+        for(let i=0;i<store.merge.length;i++){
+            const pdf=await PDFDocument.load(await store.merge[i].arrayBuffer());
+            (await merged.copyPages(pdf,pdf.getPageIndices())).forEach(p=>merged.addPage(p));
+            showProgress('merge',((i+1)/store.merge.length)*80);
+        }
+        document.getElementById('download-merge').href=URL.createObjectURL(new Blob([await merged.save()]));
+        document.getElementById('result-merge').classList.add('show');
+        showStatus('merge','合并完成！','success');showProgress('merge',100);
+    }catch(e){showStatus('merge','失败: '+e.message,'error');}
+    btn.disabled=false;
+});
+
+document.getElementById('btn-split').addEventListener('click',async()=>{
+    if(store.split.length===0){showStatus('split','请选择PDF','error');return;}
+    const btn=document.getElementById('btn-split');btn.disabled=true;
+    showStatus('split','处理中...','info');showProgress('split',0);
+    try{
+        const pdfDoc=await PDFDocument.load(await store.split[0].arrayBuffer());
+        const total=pdfDoc.getPageCount(),input=document.getElementById('split-pages').value.trim();
+        let indices=[];
+        if(input){
+            input.split(',').forEach(p=>{p=p.trim();if(p.includes('-')){const [s,e]=p.split('-').map(Number);for(let i=s;i<=e;i++)if(i>=1&&i<=total)indices.push(i-1);}else{const n=parseInt(p);if(n>=1&&n<=total)indices.push(n-1);}});
+            indices=[...new Set(indices)].sort((a,b)=>a-b);
+            const newPdf=await PDFDocument.create();
+            (await newPdf.copyPages(pdfDoc,indices)).forEach(p=>newPdf.addPage(p));
+            const url=URL.createObjectURL(new Blob([await newPdf.save()]));
+            document.getElementById('download-split-links').innerHTML='<a href="'+url+'" download="split.pdf" style="display:block;padding:8px;background:#f0f4ff;border-radius:6px;">下载PDF</a>';
+        }else{
+            const zip=new JSZip();
+            for(let i=0;i<total;i++){
+                const newPdf=await PDFDocument.create();
+                const [p]=await newPdf.copyPages(pdfDoc,[i]);
+                newPdf.addPage(p);
+                zip.file('page_'+(i+1)+'.pdf',await newPdf.save());
+                showProgress('split',((i+1)/total)*80);
+            }
+            const url=URL.createObjectURL(await zip.generateAsync({type:'blob'}));
+            document.getElementById('download-split-links').innerHTML='<a href="'+url+'" download="pages.zip" style="display:block;padding:8px;background:#f0f4ff;border-radius:6px;">下载所有页面(ZIP)</a>';
+        }
+        document.getElementById('result-split').classList.add('show');
+        showStatus('split','拆分完成！','success');showProgress('split',100);
+    }catch(e){showStatus('split','失败: '+e.message,'error');}
+    btn.disabled=false;
+});
+
+document.getElementById('btn-watermark').addEventListener('click',async()=>{
+    if(store.watermark.length===0){showStatus('watermark','请选择PDF','error');return;}
+    const text=document.getElementById('watermark-text').value;
+    if(!text){showStatus('watermark','请输入水印文字','error');return;}
+    const btn=document.getElementById('btn-watermark');btn.disabled=true;
+    showStatus('watermark','处理中...','info');showProgress('watermark',0);
+    try{
+        const pdfDoc=await PDFLib.PDFDocument.load(await store.watermark[0].arrayBuffer());
+        const total=pdfDoc.getPageCount(),fontSize=parseInt(document.getElementById('watermark-size').value),opacity=parseInt(document.getElementById('watermark-opacity').value)/100;
+        const font=await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+        for(let i=0;i<total;i++){
+            const page=pdfDoc.getPage(i);
+            const {width,height}=page.getSize();
+            page.drawText(text,{x:width/2,y:height/2,size:fontSize,font,color:PDFLib.rgb(0.5,0.5,0.5),opacity,rotate:PDFLib.degrees(-45)});
+            showProgress('watermark',((i+1)/total)*80);
+        }
+        document.getElementById('download-watermark').href=URL.createObjectURL(new Blob([await pdfDoc.save()]));
+        document.getElementById('result-watermark').classList.add('show');
+        showStatus('watermark','水印添加完成！','success');showProgress('watermark',100);
+    }catch(e){showStatus('watermark','失败: '+e.message,'error');}
+    btn.disabled=false;
+});
+
+document.getElementById('btn-pdf2img').addEventListener('click',async()=>{
+    if(store.pdf2img.length===0){showStatus('pdf2img','请选择PDF','error');return;}
+    const btn=document.getElementById('btn-pdf2img');btn.disabled=true;
+    showStatus('pdf2img','处理中...','info');showProgress('pdf2img',0);
+    try{
+        const pdf=await pdfjsLib.getDocument({data:await store.pdf2img[0].arrayBuffer()}).promise;
+        const total=pdf.numPages,format=document.getElementById('img-format').value,scale=parseInt(document.getElementById('img-scale').value);
+        const links=document.getElementById('img-links');links.innerHTML='<p>共'+total+'页：</p>';
+        for(let i=1;i<=total;i++){
+            const page=await pdf.getPage(i);
+            const vp=page.getViewport({scale});
+            const canvas=document.createElement('canvas');
+            canvas.height=vp.height;canvas.width=vp.width;
+            await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+            const mime=format==='png'?'image/png':'image/jpeg';
+            const dataUrl=canvas.toDataURL(mime,0.92);
+            const a=document.createElement('a');
+            a.href=dataUrl;a.download='page_'+i+'.'+format;a.textContent='第'+i+'页';a.style.display='block';a.style.padding='6px';a.style.margin='4px 0';a.style.background='#f0f4ff';a.style.borderRadius='5px';
+            links.appendChild(a);
+            showProgress('pdf2img',(i/total)*100);
+        }
+        document.getElementById('result-pdf2img').classList.add('show');
+        showStatus('pdf2img','转换完成！','success');
+    }catch(e){showStatus('pdf2img','失败: '+e.message,'error');}
+    btn.disabled=false;
+});
+
+document.getElementById('btn-extract').addEventListener('click',async()=>{
+    if(store.extract.length===0){showStatus('extract','请选择PDF','error');return;}
+    const btn=document.getElementById('btn-extract');btn.disabled=true;
+    showStatus('extract','提取中...','info');showProgress('extract',0);
+    try{
+        const pdf=await pdfjsLib.getDocument({data:await store.extract[0].arrayBuffer()}).promise;
+        let fullText='';
+        for(let i=1;i<=pdf.numPages;i++){
+            const page=await pdf.getPage(i);
+            const content=await page.getTextContent();
+            fullText+='--- 第'+i+'页 ---\n'+content.items.map(item=>item.str).join(' ')+'\n\n';
+            showProgress('extract',(i/pdf.numPages)*100);
+        }
+        document.getElementById('extracted-text').value=fullText;
+        document.getElementById('result-extract').classList.add('show');
+        showStatus('extract','提取完成！','success');
+    }catch(e){showStatus('extract','失败: '+e.message,'error');}
+    btn.disabled=false;
+});
+
+function copyText(){const t=document.getElementById('extracted-text').value;navigator.clipboard.writeText(t).then(()=>alert('已复制！'));}
+function downloadTxt(){const t=document.getElementById('extracted-text').value;const b=new Blob([t],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='extracted.txt';a.click();}
+
+document.getElementById('btn-imgCompress').addEventListener('click',async()=>{
+    if(store.imgCompress.length===0){showStatus('imgCompress','请选择图片','error');return;}
+    const btn=document.getElementById('btn-imgCompress');btn.disabled=true;
+    showStatus('imgCompress','压缩中...','info');showProgress('imgCompress',0);
+    try{
+        const file=store.imgCompress[0],quality=parseFloat(document.getElementById('compress-level').value);
+        const img=new Image();
+        img.onload=()=>{
+            showProgress('imgCompress',50);
+            const canvas=document.createElement('canvas');
+            canvas.width=img.width;canvas.height=img.height;
+            canvas.getContext('2d').drawImage(img,0,0);
+            canvas.toBlob(blob=>{
+                document.getElementById('compress-img-preview').src=URL.createObjectURL(blob);
+                document.getElementById('compress-stats').innerHTML='<p>原始: '+(file.size/1024).toFixed(1)+'KB → 压缩后: '+(blob.size/1024).toFixed(1)+'KB</p>';
+                document.getElementById('download-imgCompress').href=URL.createObjectURL(blob);
+                document.getElementById('result-imgCompress').classList.add('show');
+                showStatus('imgCompress','压缩完成！','success');showProgress('imgCompress',100);
+                btn.disabled=false;
+            },file.type||'image/png',quality);
         };
-        
-        // 工具卡片点击事件
-        document.querySelectorAll('.tool-card').forEach(card => {
-            card.addEventListener('click', () => {
-                document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
-                document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('show'));
-                card.classList.add('active');
-                const tool = card.dataset.tool;
-                document.getElementById('panel-' + tool).classList.add('show');
-            });
-        });
-        
-        // 初始化上传区域
-        function initUpload(tool) {
-            const uploadArea = document.getElementById('upload-' + tool);
-            const input = document.getElementById('input-' + tool);
-            
-            uploadArea.addEventListener('click', () => input.click());
-            
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.classList.add('dragover');
-            });
-            
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.classList.remove('dragover');
-            });
-            
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.classList.remove('dragover');
-                handleFiles(tool, e.dataTransfer.files);
-            });
-            
-            input.addEventListener('change', (e) => {
-                handleFiles(tool, e.target.files);
-            });
-        }
-        
-        ['merge', 'split', 'compress', 'encrypt', 'decrypt', 'rotate', 'watermark', 'toImage', 'extractText', 'convert'].forEach(initUpload);
-        
-        // 处理文件上传
-        function handleFiles(tool, files) {
-            for (let file of files) {
-                const accept = document.getElementById('input-' + tool).accept;
-                if (accept.includes('.pdf') && file.type === 'application/pdf') {
-                    filesStore[tool].push(file);
-                } else if (tool === 'convert') {
-                    if (file.name.match(/\.(doc|docx|xls|xlsx)$/i)) {
-                        filesStore[tool].push(file);
-                    }
-                }
-            }
-            renderFileList(tool);
-            updateButtonState(tool);
-        }
-        
-        // 渲染文件列表
-        function renderFileList(tool) {
-            const container = document.getElementById('file-list-' + tool);
-            container.innerHTML = '';
-            
-            filesStore[tool].forEach((file, index) => {
-                const item = document.createElement('div');
-                item.className = 'file-item';
-                item.innerHTML = `
-                    <span class="file-name">📄 ${file.name}</span>
-                    <span class="file-size">${formatSize(file.size)}</span>
-                    <button class="remove-btn" onclick="removeFile('${tool}', ${index})">×</button>
-                `;
-                container.appendChild(item);
-            });
-        }
-        
-        // 格式化文件大小
-        function formatSize(bytes) {
-            if (bytes < 1024) return bytes + ' B';
-            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-        }
-        
-        // 移除文件
-        function removeFile(tool, index) {
-            filesStore[tool].splice(index, 1);
-            renderFileList(tool);
-            updateButtonState(tool);
-        }
-        
-        // 清空文件
-        function clearFiles(tool) {
-            filesStore[tool] = [];
-            renderFileList(tool);
-            updateButtonState(tool);
-            document.getElementById('result-' + tool).classList.remove('show');
-            document.getElementById('status-' + tool).classList.remove('show');
-            document.getElementById('progress-' + tool).classList.remove('show');
-            document.getElementById('progress-' + tool).querySelector('.progress').style.width = '0%';
-            
-            // 清理额外的内容
-            if (tool === 'split') document.getElementById('download-split-links').innerHTML = '';
-            if (tool === 'image-links') document.getElementById('image-links').innerHTML = '';
-        }
-        
-        // 更新按钮状态
-        function updateButtonState(tool) {
-            const btn = document.getElementById('btn-' + tool);
-            if (btn) btn.disabled = filesStore[tool].length === 0;
-        }
-        
-        // 显示状态
-        function showStatus(tool, message, type) {
-            const status = document.getElementById('status-' + tool);
-            status.textContent = message;
-            status.className = 'status show ' + type;
-        }
-        
-        // 显示进度
-        function showProgress(tool, percent) {
-            const progress = document.getElementById('progress-' + tool);
-            progress.classList.add('show');
-            progress.querySelector('.progress').style.width = percent + '%';
-        }
-        
-        // ===== PDF合并 =====
-        document.getElementById('btn-merge').addEventListener('click', async () => {
-            if (filesStore.merge.length < 2) {
-                showStatus('merge', '请至少选择2个PDF文件', 'error');
-                return;
-            }
-            
-            const btn = document.getElementById('btn-merge');
-            btn.disabled = true;
-            showStatus('merge', '正在处理...', 'info');
-            showProgress('merge', 0);
-            
-            try {
-                const { PDFDocument } = PDFLib;
-                const mergedPdf = await PDFDocument.create();
-                
-                for (let i = 0; i < filesStore.merge.length; i++) {
-                    const file = filesStore.merge[i];
-                    const arrayBuffer = await file.arrayBuffer();
-                    const pdf = await PDFDocument.load(arrayBuffer);
-                    const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-                    pages.forEach(page => mergedPdf.addPage(page));
-                    showProgress('merge', ((i + 1) / filesStore.merge.length) * 80);
-                }
-                
-                const mergedPdfBytes = await mergedPdf.save();
-                const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-                
-                const downloadLink = document.getElementById('download-merge');
-                downloadLink.href = url;
-                
-                document.getElementById('result-merge').classList.add('show');
-                showStatus('merge', '合并完成！', 'success');
-                showProgress('merge', 100);
-            } catch (err) {
-                showStatus('merge', '处理失败: ' + err.message, 'error');
-            }
-            
-            btn.disabled = false;
-        });
-        
-        // ===== PDF拆分 =====
-        document.getElementById('btn-split').addEventListener('click', async () => {
-            if (filesStore.split.length === 0) {
-                showStatus('split', '请选择一个PDF文件', 'error');
-                return;
-            }
-            
-            const btn = document.getElementById('btn-split');
-            btn.disabled = true;
-            showStatus('split', '正在处理...', 'info');
-            showProgress('split', 0);
-            
-            try {
-                const file = filesStore.split[0];
-                const arrayBuffer = await file.arrayBuffer();
-                const pdfDoc = await PDFDocument.load(arrayBuffer);
-                const totalPages = pdfDoc.getPageCount();
-                
-                const pagesInput = document.getElementById('split-pages').value.trim();
-                const linksContainer = document.getElementById('download-split-links');
-                linksContainer.innerHTML = '';
-                
-                if (pagesInput) {
-                    // 指定页码拆分
-                    let pageIndices = [];
-                    const parts = pagesInput.split(',');
-                    for (let part of parts) {
-                        part = part.trim();
-                        if (part.includes('-')) {
-                            const [start, end] = part.split('-').map(n => parseInt(n.trim()));
-                            for (let i = start; i <= end; i++) {
-                                if (i >= 1 && i <= totalPages) pageIndices.push(i - 1);
-                            }
-                        } else {
-                            const pageNum = parseInt(part);
-                            if (pageNum >= 1 && pageNum <= totalPages) {
-                                pageIndices.push(pageNum - 1);
-                            }
-                        }
-                    }
-                    pageIndices = [...new Set(pageIndices)].sort((a, b) => a - b);
-                    
-                    const { PDFDocument } = PDFLib;
-                    const newPdf = await PDFDocument.create();
-                    const copiedPages = await newPdf.copyPages(pdfDoc, pageIndices);
-                    copiedPages.forEach(page => newPdf.addPage(page));
-                    
-                    const pdfBytes = await newPdf.save();
-                    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                    const url = URL.createObjectURL(blob);
-                    
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = 'split.pdf';
-                    link.textContent = '下载拆分后的PDF';
-                    link.style.display = 'block';
-                    link.style.margin = '10px 0';
-                    link.style.padding = '10px 20px';
-                    link.style.background = '#f0f4ff';
-                    link.style.borderRadius = '8px';
-                    linksContainer.appendChild(link);
-                } else {
-                    // 每页拆分为单独文件 - 打包成ZIP
-                    const JSZip = window.JSZip;
-                    const zip = new JSZip();
-                    
-                    for (let i = 0; i < totalPages; i++) {
-                        const { PDFDocument } = PDFLib;
-                        const newPdf = await PDFDocument.create();
-                        const [copiedPage] = await newPdf.copyPages(pdfDoc, [i]);
-                        newPdf.addPage(copiedPage);
-                        
-                        const pdfBytes = await newPdf.save();
-                        zip.file(`page_${i + 1}.pdf`, pdfBytes);
-                        showProgress('split', ((i + 1) / totalPages) * 80);
-                    }
-                    
-                    const content = await zip.generateAsync({ type: 'blob' });
-                    const url = URL.createObjectURL(content);
-                    
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = 'split_pages.zip';
-                    link.textContent = '下载所有拆分页面（ZIP）';
-                    link.style.display = 'block';
-                    link.style.margin = '10px 0';
-                    link.style.padding = '10px 20px';
-                    link.style.background = '#f0f4ff';
-                    link.style.borderRadius = '8px';
-                    linksContainer.appendChild(link);
-                }
-                
-                document.getElementById('result-split').classList.add('show');
-                showStatus('split', '拆分完成！', 'success');
-                showProgress('split', 100);
-            } catch (err) {
-                showStatus('split', '处理失败: ' + err.message, 'error');
-            }
-            
-            btn.disabled = false;
-        });
-        
-        // ===== PDF压缩 =====
-        document.getElementById('btn-compress').addEventListener('click', async () => {
-            if (filesStore.compress.length === 0) {
-                showStatus('compress', '请选择一个PDF文件', 'error');
-                return;
-            }
-            
-            const btn = document.getElementById('btn-compress');
-            btn.disabled = true;
-            showStatus('compress', '正在压缩...', 'info');
-            showProgress('compress', 0);
-            
-            try {
-                const file = filesStore.compress[0];
-                const originalSize = file.size;
-                const arrayBuffer = await file.arrayBuffer();
-                
-                showProgress('compress', 30);
-                
-                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
-                const compressedPdfBytes = await pdfDoc.save({
-                    useObjectStreams: true
-                });
-                
-                showProgress('compress', 80);
-                
-                const blob = new Blob([compressedPdfBytes], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-                
-                const downloadLink = document.getElementById('download-compress');
-                downloadLink.href = url;
-                
-                const stats = document.getElementById('compress-stats');
-                const originalMB = (originalSize / 1024 / 1024).toFixed(2);
-                const compressedMB = (compressedPdfBytes.length / 1024 / 1024).toFixed(2);
-                const ratio = ((1 - compressedPdfBytes.length / originalSize) * 100).toFixed(1);
-                stats.innerHTML = `<p>原始大小: ${originalMB} MB → 压缩后: ${compressedMB} MB</p><p>压缩率: ${ratio}%</p>`;
-                
-                document.getElementById('result-compress').classList.add('show');
-                showStatus('compress', '压缩完成！', 'success');
-                showProgress('compress', 100);
-            } catch (err) {
-                showStatus('compress', '处理失败: ' + err.message, 'error');
-            }
-            
-            btn.disabled = false;
-        });
-        
-        // ===== PDF加密 =====
-        document.getElementById('btn-encrypt').addEventListener('click', async () => {
-            if (filesStore.encrypt.length === 0) {
-                showStatus('encrypt', '请选择一个PDF文件', 'error');
-                return;
-            }
-            
-            const password = document.getElementById('encrypt-password').value;
-            const password2 = document.getElementById('encrypt-password2').value;
-            
-            if (!password) {
-                showStatus('encrypt', '请输入密码', 'error');
-                return;
-            }
-            
-            if (password !== password2) {
-                showStatus('encrypt', '两次输入的密码不一致', 'error');
-                return;
-            }
-            
-            const btn = document.getElementById('btn-encrypt');
-            btn.disabled = true;
-            showStatus('encrypt', '正在加密...', 'info');
-            showProgress('encrypt', 0);
-            
-            try {
-                const file = filesStore.encrypt[0];
-                const arrayBuffer = await file.arrayBuffer();
-                
-                showProgress('encrypt', 30);
-                
-                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
-                
-                showProgress('encrypt', 60);
-                
-                pdfDoc.encrypt({
-                    userPassword: password,
-                    ownerPassword: password,
-                    permissions: {
-                        printing: 'high',
-                        modifying: false,
-                        copying: false,
-                        annotating: false,
-                        fillingForms: false,
-                        contentAccessibility: false,
-                        documentAssembly: false
-                    }
-                });
-                
-                const encryptedPdfBytes = await pdfDoc.save();
-                
-                showProgress('encrypt', 90);
-                
-                const blob = new Blob([encryptedPdfBytes], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-                
-                const downloadLink = document.getElementById('download-encrypt');
-                downloadLink.href = url;
-                
-                document.getElementById('result-encrypt').classList.add('show');
-                showStatus('encrypt', '加密完成！', 'success');
-                showProgress('encrypt', 100);
-            } catch (err) {
-                showStatus('encrypt', '处理失败: ' + err.message, 'error');
-            }
-            
-            btn.disabled = false;
-        });
-        
-        // ===== PDF解密 =====
-        document.getElementById('btn-decrypt').addEventListener('click', async () => {
-            if (filesStore.decrypt.length === 0) {
-                showStatus('decrypt', '请选择一个PDF文件', 'error');
-                return;
-            }
-            
-            const password = document.getElementById('decrypt-password').value;
-            
-            if (!password) {
-                showStatus('decrypt', '请输入PDF密码', 'error');
-                return;
-            }
-            
-            const btn = document.getElementById('btn-decrypt');
-            btn.disabled = true;
-            showStatus('decrypt', '正在解密...', 'info');
-            showProgress('decrypt', 0);
-            
-            try {
-                const file = filesStore.decrypt[0];
-                const arrayBuffer = await file.arrayBuffer();
-                
-                showProgress('decrypt', 30);
-                
-                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer, {
-                    password: password
-                });
-                
-                showProgress('decrypt', 60);
-                
-                // 保存为未加密的PDF
-                const decryptedPdfBytes = await pdfDoc.save();
-                
-                showProgress('decrypt', 90);
-                
-                const blob = new Blob([decryptedPdfBytes], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-                
-                const downloadLink = document.getElementById('download-decrypt');
-                downloadLink.href = url;
-                
-                document.getElementById('result-decrypt').classList.add('show');
-                showStatus('decrypt', '解密完成！', 'success');
-                showProgress('decrypt', 100);
-            } catch (err) {
-                showStatus('decrypt', '解密失败: 密码错误或文件已解密', 'error');
-            }
-            
-            btn.disabled = false;
-        });
-        
-        // ===== PDF旋转 =====
-        document.getElementById('btn-rotate').addEventListener('click', async () => {
-            if (filesStore.rotate.length === 0) {
-                showStatus('rotate', '请选择一个PDF文件', 'error');
-                return;
-            }
-            
-            const btn = document.getElementById('btn-rotate');
-            btn.disabled = true;
-            showStatus('rotate', '正在处理...', 'info');
-            showProgress('rotate', 0);
-            
-            try {
-                const file = filesStore.rotate[0];
-                const arrayBuffer = await file.arrayBuffer();
-                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
-                const totalPages = pdfDoc.getPageCount();
-                
-                const angle = parseInt(document.getElementById('rotate-angle').value);
-                const pagesInput = document.getElementById('rotate-pages').value.trim();
-                
-                let pageIndices = [];
-                if (pagesInput) {
-                    const parts = pagesInput.split(',');
-                    for (let part of parts) {
-                        part = part.trim();
-                        if (part.includes('-')) {
-                            const [start, end] = part.split('-').map(n => parseInt(n.trim()));
-                            for (let i = start; i <= end; i++) {
-                                if (i >= 1 && i <= totalPages) pageIndices.push(i - 1);
-                            }
-                        } else {
-                            const pageNum = parseInt(part);
-                            if (pageNum >= 1 && pageNum <= totalPages) {
-                                pageIndices.push(pageNum - 1);
-                            }
-                        }
-                    }
-                    pageIndices = [...new Set(pageIndices)];
-                } else {
-                    for (let i = 0; i < totalPages; i++) pageIndices.push(i);
-                }
-                
-                for (let i = 0; i < totalPages; i++) {
-                    const page = pdfDoc.getPage(i);
-                    const currentRotation = page.getRotation().angle;
-                    const newAngle = (currentRotation + angle) % 360;
-                    page.setRotation(PDFLib.degrees(newAngle));
-                    showProgress('rotate', ((i + 1) / totalPages) * 80);
-                }
-                
-                const rotatedPdfBytes = await pdfDoc.save();
-                const blob = new Blob([rotatedPdfBytes], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-                
-                const downloadLink = document.getElementById('download-rotate');
-                downloadLink.href = url;
-                
-                document.getElementById('result-rotate').classList.add('show');
-                showStatus('rotate', '旋转完成！', 'success');
-                showProgress('rotate', 100);
-            } catch (err) {
-                showStatus('rotate', '处理失败: ' + err.message, 'error');
-            }
-            
-            btn.disabled = false;
-        });
-        
-        // ===== 添加水印 =====
-        document.getElementById('btn-watermark').addEventListener('click', async () => {
-            if (filesStore.watermark.length === 0) {
-                showStatus('watermark', '请选择一个PDF文件', 'error');
-                return;
-            }
-            
-            const watermarkText = document.getElementById('watermark-text').value;
-            if (!watermarkText) {
-                showStatus('watermark', '请输入水印文字', 'error');
-                return;
-            }
-            
-            const btn = document.getElementById('btn-watermark');
-            btn.disabled = true;
-            showStatus('watermark', '正在添加水印...', 'info');
-            showProgress('watermark', 0);
-            
-            try {
-                const file = filesStore.watermark[0];
-                const arrayBuffer = await file.arrayBuffer();
-                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
-                const totalPages = pdfDoc.getPageCount();
-                
-                const fontSize = parseInt(document.getElementById('watermark-size').value);
-                const opacity = parseInt(document.getElementById('watermark-opacity').value) / 100;
-                const angle = parseInt(document.getElementById('watermark-angle').value);
-                
-                const pagesInput = document.getElementById('watermark-pages').value.trim();
-                let pageIndices = [];
-                if (pagesInput) {
-                    const parts = pagesInput.split(',');
-                    for (let part of parts) {
-                        part = part.trim();
-                        if (part.includes('-')) {
-                            const [start, end] = part.split('-').map(n => parseInt(n.trim()));
-                            for (let i = start; i <= end; i++) {
-                                if (i >= 1 && i <= totalPages) pageIndices.push(i - 1);
-                            }
-                        } else {
-                            const pageNum = parseInt(part);
-                            if (pageNum >= 1 && pageNum <= totalPages) {
-                                pageIndices.push(pageNum - 1);
-                            }
-                        }
-                    }
-                    pageIndices = [...new Set(pageIndices)];
-                } else {
-                    for (let i = 0; i < totalPages; i++) pageIndices.push(i);
-                }
-                
-                const helveticaFont = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-                
-                for (let i = 0; i < pageIndices.length; i++) {
-                    const page = pdfDoc.getPage(pageIndices[i]);
-                    const { width, height } = page.getSize();
-                    
-                    const textWidth = helveticaFont.widthOfTextAtSize(watermarkText, fontSize);
-                    const textHeight = fontSize;
-                    
-                    page.drawText(watermarkText, {
-                        x: width / 2 - textWidth / 2,
-                        y: height / 2,
-                        size: fontSize,
-                        font: helveticaFont,
-                        color: PDFLib.rgb(0.5, 0.5, 0.5),
-                        opacity: opacity,
-                        rotate: PDFLib.degrees(angle)
-                    });
-                    
-                    showProgress('watermark', ((i + 1) / pageIndices.length) * 80);
-                }
-                
-                const watermarkedPdfBytes = await pdfDoc.save();
-                const blob = new Blob([watermarkedPdfBytes], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-                
-                const downloadLink = document.getElementById('download-watermark');
-                downloadLink.href = url;
-                
-                document.getElementById('result-watermark').classList.add('show');
-                showStatus('watermark', '水印添加完成！', 'success');
-                showProgress('watermark', 100);
-            } catch (err) {
-                showStatus('watermark', '处理失败: ' + err.message, 'error');
-            }
-            
-            btn.disabled = false;
-        });
-        
-        // ===== PDF转图片 =====
-        document.getElementById('btn-toImage').addEventListener('click', async () => {
-            if (filesStore.toImage.length === 0) {
-                showStatus('toImage', '请选择一个PDF文件', 'error');
-                return;
-            }
-            
-            const btn = document.getElementById('btn-toImage');
-            btn.disabled = true;
-            showStatus('toImage', '正在处理...', 'info');
-            showProgress('toImage', 0);
-            
-            try {
-                const file = filesStore.toImage[0];
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                const totalPages = pdf.numPages;
-                
-                const format = document.getElementById('image-format').value;
-                const quality = parseInt(document.getElementById('image-quality').value);
-                const scale = quality;
-                
-                const linksContainer = document.getElementById('image-links');
-                linksContainer.innerHTML = '<p>共 ' + totalPages + ' 页：</p>';
-                
-                for (let i = 1; i <= totalPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const viewport = page.getViewport({ scale });
-                    
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-                    
-                    await page.render({ canvasContext: context, viewport }).promise;
-                    
-                    const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
-                    const dataUrl = canvas.toDataURL(mimeType, 0.92);
-                    
-                    const link = document.createElement('a');
-                    link.href = dataUrl;
-                    link.download = `page_${i}.${format}`;
-                    link.textContent = `下载第 ${i} 页`;
-                    link.style.display = 'block';
-                    link.style.margin = '5px 0';
-                    link.style.padding = '8px 15px';
-                    link.style.background = '#f0f4ff';
-                    link.style.borderRadius = '6px';
-                    link.style.color = '#667eea';
-                    linksContainer.appendChild(link);
-                    
-                    showProgress('toImage', (i / totalPages) * 100);
-                }
-                
-                document.getElementById('result-toImage').classList.add('show');
-                showStatus('toImage', '转换完成！', 'success');
-            } catch (err) {
-                showStatus('toImage', '处理失败: ' + err.message, 'error');
-            }
-            
-            btn.disabled = false;
-        });
-        
-        // ===== 提取文字 =====
-        document.getElementById('btn-extractText').addEventListener('click', async () => {
-            if (filesStore.extractText.length === 0) {
-                showStatus('extractText', '请选择一个PDF文件', 'error');
-                return;
-            }
-            
-            const btn = document.getElementById('btn-extractText');
-            btn.disabled = true;
-            showStatus('extractText', '正在处理...', 'info');
-            showProgress('extractText', 0);
-            
-            try {
-                const file = filesStore.extractText[0];
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                const totalPages = pdf.numPages;
-                
-                let fullText = '';
-                
-                for (let i = 1; i <= totalPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map(item => item.str).join(' ');
-                    fullText += `--- 第 ${i} 页 ---\n${pageText}\n\n`;
-                    showProgress('extractText', (i / totalPages) * 100);
-                }
-                
-                document.getElementById('extracted-text').value = fullText;
-                document.getElementById('result-extractText').classList.add('show');
-                showStatus('extractText', '提取完成！共 ' + totalPages + ' 页', 'success');
-            } catch (err) {
-                showStatus('extractText', '处理失败: ' + err.message, 'error');
-            }
-            
-            btn.disabled = false;
-        });
-        
-        // 复制文本
-        function copyText() {
-            const text = document.getElementById('extracted-text').value;
-            navigator.clipboard.writeText(text).then(() => {
-                alert('复制成功！');
-            });
-        }
-        
-        // 下载文本
-        function downloadText() {
-            const text = document.getElementById('extracted-text').value;
-            const blob = new Blob([text], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'extracted-text.txt';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-        
-        // 加载JSZip
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-        document.head.appendChild(script);
-    </script>
+        img.src=URL.createObjectURL(file);
+    }catch(e){showStatus('imgCompress','失败: '+e.message,'error');btn.disabled=false;}
+});
+
+function generateQR(){
+    const content=document.getElementById('qr-content').value;
+    if(!content){showStatus('qrcode','请输入内容','error');return;}
+    const size=parseInt(document.getElementById('qr-size').value),color=document.getElementById('qr-color').value;
+    const container=document.getElementById('qrcode');container.innerHTML='';
+    if(qrInstance)qrInstance.clear();
+    qrInstance=new QRCode(container,{text:content,width:size,height:size,colorDark:color,colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+    setTimeout(()=>{const canvas=container.querySelector('canvas');if(canvas){document.getElementById('download-qr').href=canvas.toDataURL('image/png');document.getElementById('result-qrcode').classList.add('show');}},100);
+    showStatus('qrcode','生成成功！','success');
+}
+function clearQR(){document.getElementById('qr-content').value='';document.getElementById('qrcode').innerHTML='';document.getElementById('result-qrcode').classList.remove('show');}
+
+document.getElementById('tts-rate').addEventListener('input',e=>{document.getElementById('rate-val').textContent=e.target.value;});
+document.getElementById('tts-pitch').addEventListener('input',e=>{document.getElementById('pitch-val').textContent=e.target.value;});
+function populateVoices(){const voices=speechSynthesis.getVoices();const select=document.getElementById('tts-voice');select.innerHTML='';voices.forEach(v=>{const opt=document.createElement('option');opt.value=v.name;opt.textContent=v.name+' ('+v.lang+')';select.appendChild(opt);});}
+if(speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=populateVoices;
+populateVoices();
+
+function speakText(){
+    const text=document.getElementById('tts-text').value;
+    if(!text){showStatus('tts','请输入文字','error');return;}
+    speechSynthesis.cancel();
+    const utterance=new SpeechSynthesisUtterance(text);
+    utterance.rate=parseFloat(document.getElementById('tts-rate').value);
+    utterance.pitch=parseFloat(document.getElementById('tts-pitch').value);
+    const voice=speechSynthesis.getVoices().find(v=>v.name===document.getElementById('tts-voice').value);
+    if(voice)utterance.voice=voice;
+    utterance.onend=()=>{showStatus('tts','播放完成','success');};
+    utterance.onerror=()=>{showStatus('tts','播放失败','error');};
+    speechSynthesis.speak(utterance);
+    showStatus('tts','正在播放...','info');
+}
+function stopSpeak(){speechSynthesis.cancel();showStatus('tts','已停止','info');}
+</script>
 </body>
 </html>
